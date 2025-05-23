@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import GPXParser from 'gpxparser';
+import chroma from 'chroma-js';
 
 interface Point {
   lat: number;
@@ -17,11 +18,6 @@ interface Track {
 
 function App() {
   const [tracks, setTracks] = useState<Track[]>([]);
-
-  // Generate a random color in hex format
-  const generateColor = () => {
-    return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -40,17 +36,23 @@ function App() {
             lng: point.lon
           }));
           
-          // Get the start date from the first point
           const startDate = gpx.tracks[0].points[0]?.time 
             ? new Date(gpx.tracks[0].points[0].time).toLocaleDateString()
             : 'Unknown date';
           
-          setTracks(prevTracks => [...prevTracks, {
-            points,
-            color: generateColor(),
-            startDate,
-            filename: file.name
-          }]);
+          setTracks(prevTracks => {
+            // Generate a color using the golden ratio for even distribution
+            const hue = (prevTracks.length * 137.5) % 360;
+            const newColor = chroma.hsl(hue, 0.7, 0.5).hex();
+            console.log('Generated color for track:', file.name, newColor, 'at index:', prevTracks.length);
+            
+            return [...prevTracks, {
+              points,
+              color: newColor,
+              startDate,
+              filename: file.name
+            }];
+          });
         }
       };
       reader.readAsText(file);
@@ -112,14 +114,19 @@ function App() {
           style={{ height: '100%', width: '100%' }}
         >
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           />
           {tracks.map((track, index) => (
             <Polyline
               key={index}
               positions={track.points}
-              pathOptions={{ color: track.color, weight: 3 }}
+              pathOptions={{ 
+                color: track.color,
+                weight: 3,
+                opacity: 0.7,
+                fillOpacity: 0.7
+              }}
             />
           ))}
         </MapContainer>
