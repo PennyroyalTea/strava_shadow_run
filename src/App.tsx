@@ -4,6 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import GPXParser from 'gpxparser';
 import chroma from 'chroma-js';
 import L from 'leaflet';
+import { Point, Track } from './types';
+import { smoothTrack } from './utils/trackProcessing';
 
 // Fix for default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -13,24 +15,21 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-interface Point {
-  lat: number;
-  lng: number;
-  time: string;
-}
-
-interface Track {
-  points: Point[];
-  color: string;
-  startDate: string;
-  filename: string;
-  currentPosition?: Point;
-  duration?: number; // Duration in milliseconds
-}
-
 function App() {
   const [tracks, setTracks] = useState<Track[]>([]);
-  const [timeProgress, setTimeProgress] = useState(0); // 0 to 1 representing progress
+  const [timeProgress, setTimeProgress] = useState(0);
+  const [isSmoothingEnabled, setIsSmoothingEnabled] = useState(true);
+
+  // Reapply smoothing when the setting changes
+  useEffect(() => {
+    setTracks(prevTracks => 
+      prevTracks.map(track => ({
+        ...track,
+        points: isSmoothingEnabled ? smoothTrack(track.rawPoints) : track.rawPoints,
+        currentPosition: isSmoothingEnabled ? smoothTrack(track.rawPoints)[0] : track.rawPoints[0]
+      }))
+    );
+  }, [isSmoothingEnabled]);
 
   const maxDuration = tracks.length > 0 
     ? Math.max(...tracks.map(track => track.duration!))
@@ -55,11 +54,14 @@ function App() {
         gpx.parse(gpxContent);
 
         if (gpx.tracks.length > 0) {
-          const points = gpx.tracks[0].points.map(point => ({
+          const rawPoints = gpx.tracks[0].points.map(point => ({
             lat: point.lat,
             lng: point.lon,
             time: new Date(point.time).toISOString()
           }));
+
+          // Apply smoothing only if enabled
+          const points = isSmoothingEnabled ? smoothTrack(rawPoints) : rawPoints;
           
           const startDate = gpx.tracks[0].points[0]?.time 
             ? new Date(gpx.tracks[0].points[0].time).toLocaleDateString()
@@ -81,6 +83,7 @@ function App() {
             
             return [...prevTracks, {
               points,
+              rawPoints,
               color: newColor,
               startDate,
               filename: file.name,
@@ -131,13 +134,25 @@ function App() {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '20px', backgroundColor: '#f0f0f0' }}>
-        <input
-          type="file"
-          accept=".gpx"
-          multiple
-          onChange={handleFileUpload}
-          style={{ padding: '10px' }}
-        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <input
+            type="file"
+            accept=".gpx"
+            multiple
+            onChange={handleFileUpload}
+            style={{ padding: '10px' }}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={isSmoothingEnabled}
+                onChange={(e) => setIsSmoothingEnabled(e.target.checked)}
+              />
+              Smooth tracks
+            </label>
+          </div>
+        </div>
         <div style={{ marginTop: '10px' }}>
           {tracks.map((track, index) => (
             <div key={index} style={{ 
