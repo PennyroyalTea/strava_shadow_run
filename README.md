@@ -1,14 +1,17 @@
-# GPX Track Viewer
+# Strava runs comparison
 
-A simple web application that allows users to upload GPX files and visualize the tracks on an interactive map.
+A web application that allows you to upload and compare multiple GPX tracks on an interactive map. Perfect for comparing your Strava runs against each other!
 
 ## Features
 
-- Upload GPX files from your computer
-- View the track on an interactive map
-- Automatic centering and zooming to show the entire track
+- Upload multiple GPX files simultaneously
+- View and compare multiple tracks on an interactive map
+- Each track gets a unique color for easy identification
+- Time-based animation with synchronized markers
+- Toggle track smoothing for cleaner visualization
+- Automatic centering and zooming to show all tracks
 
-## Getting Started
+## Running locally
 
 1. Install dependencies:
 ```bash
@@ -25,12 +28,15 @@ npm start
 ## Usage
 
 1. Click the "Choose File" button in the top bar
-2. Select a GPX file from your computer
-3. The track will automatically be displayed on the map in red
+2. Select one or more GPX files from your computer
+3. Each track will be displayed on the map with a unique color
+4. Use the time slider to animate the tracks and compare positions
+5. Toggle the "Smooth tracks" option to reduce GPS noise
 
-## Technologies Used
+## Exporting GPX from Strava
 
-- React
-- TypeScript
-- Leaflet (for map visualization)
-- GPXParser (for parsing GPX files) 
+1. Go to your activity on Strava
+2. Click the three dots menu (⋮) in the top right
+3. Select "Export GPX"
+4. The GPX file will be downloaded to your computer
+5. Upload the file to this application to visualize it 
