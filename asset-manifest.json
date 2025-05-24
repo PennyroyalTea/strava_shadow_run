@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/strava_shadow_run/static/css/main.2e662a65.css",
+    "main.js": "/strava_shadow_run/static/js/main.4c10c894.js",
+    "index.html": "/strava_shadow_run/index.html",
+    "main.2e662a65.css.map": "/strava_shadow_run/static/css/main.2e662a65.css.map",
+    "main.4c10c894.js.map": "/strava_shadow_run/static/js/main.4c10c894.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2e662a65.css",
+    "static/js/main.4c10c894.js"
+  ]
+}
