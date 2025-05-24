@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import GPXParser from 'gpxparser';
@@ -19,6 +19,8 @@ function App() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [timeProgress, setTimeProgress] = useState(0);
   const [isSmoothingEnabled, setIsSmoothingEnabled] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const animationRef = useRef<number>();
 
   // Reapply smoothing when the setting changes
   useEffect(() => {
@@ -96,6 +98,34 @@ function App() {
       reader.readAsText(file);
     });
   };
+
+  // Animation effect
+  useEffect(() => {
+    if (!isPlaying) {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      return;
+    }
+
+    const startTime = Date.now();
+    const duration = 10000; // 10 seconds for full animation
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = (elapsed % duration) / duration;
+      setTimeProgress(progress);
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isPlaying]);
 
   // Update marker positions based on time progress
   useEffect(() => {
@@ -190,26 +220,8 @@ function App() {
             </div>
           ))}
         </div>
-        {tracks.length > 0 && (
-          <div style={{ marginTop: '20px' }}>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.001"
-              value={timeProgress}
-              onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
-              style={{ width: '100%' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-              <span>0:00</span>
-              <span>{formatTime(timeProgress * maxDuration)}</span>
-              <span>{formatTime(maxDuration)}</span>
-            </div>
-          </div>
-        )}
       </div>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, position: 'relative' }}>
         <MapContainer
           center={[51.505, -0.09]}
           zoom={13}
@@ -251,6 +263,55 @@ function App() {
             </React.Fragment>
           ))}
         </MapContainer>
+        {tracks.length > 0 && (
+          <div style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'white',
+            padding: '15px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            width: '80%',
+            maxWidth: '600px',
+            zIndex: 1000
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: isPlaying ? '#ff4444' : '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+              >
+                {isPlaying ? '⏸ Pause' : '▶ Play'}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.001"
+                value={timeProgress}
+                onChange={(e) => setTimeProgress(parseFloat(e.target.value))}
+                style={{ flex: 1 }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+              <span>0:00</span>
+              <span>{formatTime(timeProgress * maxDuration)}</span>
+              <span>{formatTime(maxDuration)}</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
