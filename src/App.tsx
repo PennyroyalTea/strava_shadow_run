@@ -6,6 +6,7 @@ import chroma from 'chroma-js';
 import L from 'leaflet';
 import { Point, Track } from './types';
 import { smoothTrack } from './utils/trackProcessing';
+import { SettingsModal } from './components/SettingsModal';
 
 // Fix for default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -18,8 +19,9 @@ L.Icon.Default.mergeOptions({
 function App() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [timeProgress, setTimeProgress] = useState(0);
-  const [isSmoothingEnabled, setIsSmoothingEnabled] = useState(true);
+  const [isSmoothingEnabled, setIsSmoothingEnabled] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const animationRef = useRef<number>();
 
   // Reapply smoothing when the setting changes
@@ -173,14 +175,19 @@ function App() {
             style={{ padding: '10px' }}
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={isSmoothingEnabled}
-                onChange={(e) => setIsSmoothingEnabled(e.target.checked)}
-              />
-              Smooth tracks
-            </label>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#4a90e2',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Settings
+            </button>
           </div>
         </div>
         <div style={{ marginTop: '10px' }}>
@@ -313,6 +320,12 @@ function App() {
           </div>
         )}
       </div>
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        isSmoothingEnabled={isSmoothingEnabled}
+        onSmoothingChange={setIsSmoothingEnabled}
+      />
     </div>
   );
 }
