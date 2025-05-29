@@ -85,7 +85,7 @@ function App() {
             const hue = (prevTracks.length * 137.5) % 360;
             const newColor = chroma.hsl(hue, 0.7, 0.5).hex();
             
-            return [...prevTracks, {
+            const newTracks = [...prevTracks, {
               points,
               rawPoints,
               color: newColor,
@@ -94,6 +94,13 @@ function App() {
               currentPosition: points[0],
               duration
             }];
+
+            // Sort tracks by date
+            return newTracks.sort((a, b) => {
+              const dateA = new Date(a.startDate).getTime();
+              const dateB = new Date(b.startDate).getTime();
+              return dateA - dateB;
+            });
           });
         }
       };
@@ -208,7 +215,7 @@ function App() {
                 marginRight: '10px',
                 border: '1px solid #ccc'
               }} />
-              <span style={{ flex: 1 }}>{track.filename} - {track.startDate}</span>
+              <span style={{ flex: 1 }}>{track.startDate} - {track.filename}</span>
               <button
                 onClick={() => setTracks(prevTracks => prevTracks.filter((_, i) => i !== index))}
                 style={{
