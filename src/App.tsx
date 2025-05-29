@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import GPXParser from 'gpxparser';
 import chroma from 'chroma-js';
 import L from 'leaflet';
-import { Point, Track } from './types';
+import { Track } from './types';
 import { smoothTrack } from './utils/trackProcessing';
 import { SettingsModal } from './components/SettingsModal';
 
