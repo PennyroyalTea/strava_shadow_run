@@ -1,4 +1,4 @@
-# Strava runs comparison
+# Track Comparison
 
 A web application that allows you to upload and compare multiple GPX tracks on an interactive map. Perfect for comparing your Strava runs against each other!
 

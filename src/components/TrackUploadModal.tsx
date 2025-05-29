@@ -36,7 +36,16 @@ export function TrackUploadModal({ onFileUpload }: TrackUploadModalProps) {
       }}>
         <h2 style={{ margin: '0 0 20px 0' }}>Upload Your Tracks</h2>
         <p style={{ margin: '0 0 20px 0', color: '#666' }}>
-          Upload .GPX files corresponding to your running tracks to compare them
+          Upload .GPX files of your runs to compare them. They can be exported from{' '}
+          <a 
+            href="https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export#h_01GDP2JB35R4ECM0E6YAH316B9"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: '#2196F3', textDecoration: 'none' }}
+          >
+            Strava web app
+          </a>
+          {' '}and other sources.
         </p>
         <div style={{
           border: '2px dashed #ccc',
