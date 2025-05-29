@@ -25,7 +25,8 @@ export function TrackUploadModal({ onFileUpload }: TrackUploadModalProps) {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 1000,
+      zIndex: 9999,
+      pointerEvents: 'auto',
     }}>
       <div style={{
         backgroundColor: 'white',
@@ -33,6 +34,8 @@ export function TrackUploadModal({ onFileUpload }: TrackUploadModalProps) {
         borderRadius: '8px',
         minWidth: '400px',
         textAlign: 'center',
+        position: 'relative',
+        zIndex: 10000,
       }}>
         <h2 style={{ margin: '0 0 20px 0' }}>Upload Your Tracks</h2>
         <p style={{ margin: '0 0 20px 0', color: '#666' }}>
