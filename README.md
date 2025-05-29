@@ -1,15 +1,8 @@
+![Demo](public/static/demo.gif)
+
 # Track Comparison
 
 A web application that allows you to upload and compare multiple GPX tracks on an interactive map. Perfect for comparing your Strava runs against each other!
-
-## Features
-
-- Upload multiple GPX files simultaneously
-- View and compare multiple tracks on an interactive map
-- Each track gets a unique color for easy identification
-- Time-based animation with synchronized markers
-- Toggle track smoothing for cleaner visualization
-- Automatic centering and zooming to show all tracks
 
 ## Running locally
 
