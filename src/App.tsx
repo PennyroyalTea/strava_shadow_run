@@ -24,6 +24,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [trackOpacity, setTrackOpacity] = useState(0.2);
   const animationRef = useRef<number>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reapply smoothing when the setting changes
   useEffect(() => {
@@ -173,69 +174,6 @@ function App() {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '20px', backgroundColor: '#f0f0f0' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <input
-            type="file"
-            accept=".gpx"
-            multiple
-            onChange={handleFileUpload}
-            style={{ padding: '10px' }}
-          />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#4a90e2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              Settings
-            </button>
-          </div>
-        </div>
-        <div style={{ marginTop: '10px' }}>
-          {tracks.map((track, index) => (
-            <div key={index} style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              marginBottom: '5px',
-              padding: '5px',
-              backgroundColor: '#fff',
-              borderRadius: '4px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ 
-                width: '20px', 
-                height: '20px', 
-                backgroundColor: track.color,
-                marginRight: '10px',
-                border: '1px solid #ccc'
-              }} />
-              <span style={{ flex: 1 }}>{track.startDate} - {track.filename}</span>
-              <button
-                onClick={() => setTracks(prevTracks => prevTracks.filter((_, i) => i !== index))}
-                style={{
-                  padding: '4px 8px',
-                  backgroundColor: '#ff4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-                title="Delete track"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
       <div style={{ flex: 1, position: 'relative' }}>
         <MapContainer
           center={[51.505, -0.09]}
@@ -250,7 +188,7 @@ function App() {
             <React.Fragment key={index}>
               <Polyline
                 positions={track.points}
-                pathOptions={{ 
+                pathOptions={{
                   color: track.color,
                   weight: 3,
                   opacity: trackOpacity,
@@ -271,13 +209,38 @@ function App() {
                       box-shadow: 0 0 4px rgba(0,0,0,0.3);
                     "></div>`,
                     iconSize: [12, 12],
-                    iconAnchor: [6, 6]
                   })}
                 />
               )}
             </React.Fragment>
           ))}
         </MapContainer>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".gpx"
+          multiple
+          onChange={handleFileUpload}
+          style={{ display: 'none' }}
+        />
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '8px 16px',
+            backgroundColor: '#4a90e2',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            zIndex: 1000,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+        >
+          Settings
+        </button>
         {tracks.length > 0 && (
           <div style={{
             position: 'fixed',
@@ -327,6 +290,89 @@ function App() {
             </div>
           </div>
         )}
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          backgroundColor: 'white',
+          padding: '15px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          width: '300px',
+          maxHeight: '400px',
+          overflowY: 'auto',
+          zIndex: 1000
+        }}>
+          <h3 style={{ margin: '0 0 10px 0' }}>Tracks</h3>
+          {tracks.length === 0 ? (
+            <div style={{ 
+              padding: '20px', 
+              textAlign: 'center', 
+              color: '#666',
+              backgroundColor: '#f8f8f8',
+              borderRadius: '4px',
+              marginBottom: '10px'
+            }}>
+              No tracks added yet
+            </div>
+          ) : (
+            tracks.map((track, index) => (
+              <div key={index} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                marginBottom: '5px',
+                padding: '5px',
+                backgroundColor: '#f8f8f8',
+                borderRadius: '4px',
+              }}>
+                <div style={{ 
+                  width: '12px', 
+                  height: '12px', 
+                  backgroundColor: track.color,
+                  marginRight: '10px',
+                  borderRadius: '2px'
+                }} />
+                <span style={{ flex: 1, fontSize: '14px' }}>{track.startDate}</span>
+                <button
+                  onClick={() => setTracks(prevTracks => prevTracks.filter((_, i) => i !== index))}
+                  style={{
+                    padding: '2px 6px',
+                    backgroundColor: '#ff4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                  title="Delete track"
+                >
+                  ×
+                </button>
+              </div>
+            ))
+          )}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              width: '100%',
+              padding: '8px',
+              backgroundColor: '#f0f0f0',
+              border: '2px dashed #ccc',
+              borderRadius: '4px',
+              color: '#666',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '5px',
+              fontSize: '14px',
+              marginTop: '5px'
+            }}
+            title="Add more tracks"
+          >
+            <span style={{ fontSize: '18px' }}>+</span> Add tracks
+          </button>
+        </div>
       </div>
       <SettingsModal
         isOpen={isSettingsOpen}
