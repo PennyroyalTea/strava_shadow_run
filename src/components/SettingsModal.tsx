@@ -5,9 +5,18 @@ interface SettingsModalProps {
   onClose: () => void;
   isSmoothingEnabled: boolean;
   onSmoothingChange: (enabled: boolean) => void;
+  trackOpacity: number;
+  onTrackOpacityChange: (opacity: number) => void;
 }
 
-export function SettingsModal({ isOpen, onClose, isSmoothingEnabled, onSmoothingChange }: SettingsModalProps) {
+export function SettingsModal({ 
+  isOpen, 
+  onClose, 
+  isSmoothingEnabled, 
+  onSmoothingChange,
+  trackOpacity,
+  onTrackOpacityChange 
+}: SettingsModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -43,15 +52,33 @@ export function SettingsModal({ isOpen, onClose, isSmoothingEnabled, onSmoothing
             ×
           </button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={isSmoothingEnabled}
+                onChange={(e) => onSmoothingChange(e.target.checked)}
+              />
+              Smooth tracks
+            </label>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <label>Track Transparency</label>
             <input
-              type="checkbox"
-              checked={isSmoothingEnabled}
-              onChange={(e) => onSmoothingChange(e.target.checked)}
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={trackOpacity}
+              onChange={(e) => onTrackOpacityChange(parseFloat(e.target.value))}
+              style={{ width: '100%' }}
             />
-            Smooth tracks
-          </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#666' }}>
+              <span>More Transparent</span>
+              <span>More Opaque</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

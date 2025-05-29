@@ -22,6 +22,7 @@ function App() {
   const [isSmoothingEnabled, setIsSmoothingEnabled] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [trackOpacity, setTrackOpacity] = useState(0.2);
   const animationRef = useRef<number>();
 
   // Reapply smoothing when the setting changes
@@ -252,8 +253,8 @@ function App() {
                 pathOptions={{ 
                   color: track.color,
                   weight: 3,
-                  opacity: 0.7,
-                  fillOpacity: 0.7
+                  opacity: trackOpacity,
+                  fillOpacity: trackOpacity
                 }}
               />
               {track.currentPosition && (
@@ -332,6 +333,8 @@ function App() {
         onClose={() => setIsSettingsOpen(false)}
         isSmoothingEnabled={isSmoothingEnabled}
         onSmoothingChange={setIsSmoothingEnabled}
+        trackOpacity={trackOpacity}
+        onTrackOpacityChange={setTrackOpacity}
       />
     </div>
   );
