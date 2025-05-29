@@ -9,7 +9,9 @@ export interface Track {
   rawPoints: Point[];
   color: string;
   startDate: string;
+  startTime: string;
   filename: string;
+  name?: string;
   currentPosition?: Point;
   duration?: number;
 } 

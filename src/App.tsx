@@ -69,9 +69,17 @@ function App() {
           // Apply smoothing only if enabled
           const points = isSmoothingEnabled ? smoothTrack(rawPoints) : rawPoints;
           
-          const startDate = gpx.tracks[0].points[0]?.time 
-            ? new Date(gpx.tracks[0].points[0].time).toLocaleDateString()
+          const firstPoint = gpx.tracks[0].points[0];
+          const startDate = firstPoint?.time 
+            ? new Date(firstPoint.time).toLocaleDateString()
             : 'Unknown date';
+          
+          const startTime = firstPoint?.time
+            ? new Date(firstPoint.time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+            : 'Unknown time';
+
+          // Get track name from metadata if available
+          const trackName = gpx.tracks[0].name || undefined;
 
           // Calculate duration if we have timestamps
           let duration: number | undefined;
@@ -92,7 +100,9 @@ function App() {
               rawPoints,
               color: newColor,
               startDate,
+              startTime,
               filename: file.name,
+              name: trackName,
               currentPosition: points[0],
               duration
             }];
@@ -337,7 +347,14 @@ function App() {
                   marginRight: '10px',
                   borderRadius: '2px'
                 }} />
-                <span style={{ flex: 1, fontSize: '14px' }}>{track.startDate}</span>
+                <div style={{ flex: 1, fontSize: '14px' }}>
+                  <div style={{ fontWeight: 'bold' }}>
+                    {track.name || track.filename}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    {track.startDate} {track.startTime}
+                  </div>
+                </div>
                 <button
                   onClick={() => setTracks(prevTracks => prevTracks.filter((_, i) => i !== index))}
                   style={{
