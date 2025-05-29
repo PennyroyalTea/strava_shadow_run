@@ -108,6 +108,11 @@ function App() {
       };
       reader.readAsText(file);
     });
+
+    // Reset the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Animation effect
