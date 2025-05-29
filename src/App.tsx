@@ -7,6 +7,7 @@ import L from 'leaflet';
 import { Track } from './types';
 import { smoothTrack } from './utils/trackProcessing';
 import { SettingsModal } from './components/SettingsModal';
+import { TrackUploadModal } from './components/TrackUploadModal';
 
 // Fix for default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -23,6 +24,7 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [trackOpacity, setTrackOpacity] = useState(0.2);
+  const [hasShownUploadModal, setHasShownUploadModal] = useState(false);
   const animationRef = useRef<number>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,81 +50,71 @@ function App() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
+  const handleFileUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const gpxContent = e.target?.result as string;
+      const gpx = new GPXParser();
+      gpx.parse(gpxContent);
 
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const gpxContent = e.target?.result as string;
-        const gpx = new GPXParser();
-        gpx.parse(gpxContent);
+      if (gpx.tracks.length > 0) {
+        const rawPoints = gpx.tracks[0].points.map(point => ({
+          lat: point.lat,
+          lng: point.lon,
+          time: new Date(point.time).toISOString()
+        }));
 
-        if (gpx.tracks.length > 0) {
-          const rawPoints = gpx.tracks[0].points.map(point => ({
-            lat: point.lat,
-            lng: point.lon,
-            time: new Date(point.time).toISOString()
-          }));
+        // Apply smoothing only if enabled
+        const points = isSmoothingEnabled ? smoothTrack(rawPoints) : rawPoints;
+        
+        const firstPoint = gpx.tracks[0].points[0];
+        const startDate = firstPoint?.time 
+          ? new Date(firstPoint.time).toLocaleDateString()
+          : 'Unknown date';
+        
+        const startTime = firstPoint?.time
+          ? new Date(firstPoint.time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+          : 'Unknown time';
 
-          // Apply smoothing only if enabled
-          const points = isSmoothingEnabled ? smoothTrack(rawPoints) : rawPoints;
-          
-          const firstPoint = gpx.tracks[0].points[0];
-          const startDate = firstPoint?.time 
-            ? new Date(firstPoint.time).toLocaleDateString()
-            : 'Unknown date';
-          
-          const startTime = firstPoint?.time
-            ? new Date(firstPoint.time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-            : 'Unknown time';
+        // Get track name from metadata if available
+        const trackName = gpx.tracks[0].name || undefined;
 
-          // Get track name from metadata if available
-          const trackName = gpx.tracks[0].name || undefined;
-
-          // Calculate duration if we have timestamps
-          let duration: number | undefined;
-          const firstPointTime = points[0].time;
-          const lastPointTime = points[points.length - 1].time;
-          if (firstPointTime && lastPointTime) {
-            const startTime = new Date(firstPointTime).getTime();
-            const endTime = new Date(lastPointTime).getTime();
-            duration = endTime - startTime;
-          }
-          
-          setTracks(prevTracks => {
-            const hue = (prevTracks.length * 137.5) % 360;
-            const newColor = chroma.hsl(hue, 0.7, 0.5).hex();
-            
-            const newTracks = [...prevTracks, {
-              points,
-              rawPoints,
-              color: newColor,
-              startDate,
-              startTime,
-              filename: file.name,
-              name: trackName,
-              currentPosition: points[0],
-              duration
-            }];
-
-            // Sort tracks by date
-            return newTracks.sort((a, b) => {
-              const dateA = new Date(a.startDate).getTime();
-              const dateB = new Date(b.startDate).getTime();
-              return dateA - dateB;
-            });
-          });
+        // Calculate duration if we have timestamps
+        let duration: number | undefined;
+        const firstPointTime = points[0].time;
+        const lastPointTime = points[points.length - 1].time;
+        if (firstPointTime && lastPointTime) {
+          const startTime = new Date(firstPointTime).getTime();
+          const endTime = new Date(lastPointTime).getTime();
+          duration = endTime - startTime;
         }
-      };
-      reader.readAsText(file);
-    });
+        
+        setTracks(prevTracks => {
+          const hue = (prevTracks.length * 137.5) % 360;
+          const newColor = chroma.hsl(hue, 0.7, 0.5).hex();
+          
+          const newTracks = [...prevTracks, {
+            points,
+            rawPoints,
+            color: newColor,
+            startDate,
+            startTime,
+            filename: file.name,
+            name: trackName,
+            currentPosition: points[0],
+            duration
+          }];
 
-    // Reset the file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+          // Sort tracks by date
+          return newTracks.sort((a, b) => {
+            const dateA = new Date(a.startDate).getTime();
+            const dateB = new Date(b.startDate).getTime();
+            return dateA - dateB;
+          });
+        });
+      }
+    };
+    reader.readAsText(file);
   };
 
   // Animation effect
@@ -189,6 +181,12 @@ function App() {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {tracks.length === 0 && !hasShownUploadModal && (
+        <TrackUploadModal onFileUpload={(file) => {
+          setHasShownUploadModal(true);
+          handleFileUpload(file);
+        }} />
+      )}
       <div style={{ flex: 1, position: 'relative' }}>
         <MapContainer
           center={[51.505, -0.09]}
@@ -235,7 +233,13 @@ function App() {
           type="file"
           accept=".gpx"
           multiple
-          onChange={handleFileUpload}
+          onChange={(e) => {
+            if (e.target.files) {
+              Array.from(e.target.files).forEach(file => {
+                handleFileUpload(file);
+              });
+            }
+          }}
           style={{ display: 'none' }}
         />
         <button
